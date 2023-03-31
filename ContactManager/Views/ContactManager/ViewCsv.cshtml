@@ -1,0 +1,170 @@
+﻿@using ContactManager.ViewModels
+
+@model IList<CsvViewModel>
+
+<head>
+    <title>View CSV-File</title>
+    
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            border: none;
+            outline: none;
+            background-color: transparent;
+            text-align: left;
+        }
+
+        button {
+            margin-right: 5px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-primary:hover, .btn-danger:hover {
+            color: white;
+        }
+    </style>
+</head>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th onclick="sortTable(0)">Id</th>
+            <th onclick="sortTable(1)">Name</th>
+            <th onclick="sortTable(2)">DateOfBirth</th>
+            <th onclick="sortTable(3)">Phone</th>
+            <th onclick="sortTable(4)">Married</th>
+            <th onclick="sortTable(5)">Salary</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var csv in Model)
+        {
+            <tr>
+                <td>@csv.Id</td>
+                <td><input type="text" id="name-@csv.Id" value="@csv.Name" /></td>
+                <td><input type="text" id="dob-@csv.Id" value="@csv.DateOfBirth" /></td>
+                <td><input type="text" id="phone-@csv.Id" value="@csv.Phone" /></td>
+                <td><input type="text" id="married-@csv.Id" value="@csv.Married" /></td>
+                <td><input type="text" id="salary-@csv.Id" value="@csv.Salary" /></td>
+                <td>
+                    <button class="btn btn-primary" onclick="saveData(@csv.Id)">Save</button>
+                    <button class="btn btn-danger" onclick="deleteData(@csv.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@section scripts {
+    <script>
+        function saveData(id) {
+            var name = $('#name-' + id).val();
+            var dob = $('#dob-' + id).val();
+            var phone = $('#phone-' + id).val();
+            var married = $('#married-' + id).val();
+            var salary = $('#salary-' + id).val();
+
+            var model = {
+                "Id": id,
+                "Name": name,
+                "DateOfBirth": dob,
+                "Married": married,
+                "Phone": phone,
+                "Salary": salary
+            };
+
+            $.ajax({
+                type: 'PUT',
+                url: '/ContactManager/UpdateRow',
+                data: model,
+                contentType: "application/x-www-form-urlencoded",
+                success: function () {
+                    location.reload();
+                }
+            });
+        }
+
+        function deleteData(id) {
+            
+            $.ajax({
+                type: 'DELETE',
+                url: '/ContactManager/DeleteRow',
+                data: {
+                    rowId: id
+                },
+                success: function () {
+                    location.reload();
+                }
+            });
+        }
+
+        function sortTable(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementsByTagName("table")[0];
+            switching = true;
+            dir = "asc";
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("td")[n];
+                    y = rows[i + 1].getElementsByTagName("td")[n];
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+    </script>
+}

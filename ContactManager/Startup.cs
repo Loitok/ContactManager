@@ -1,5 +1,11 @@
+using AutoMapper;
+using ContactManager.Data.Contexts;
+using ContactManager.Mappings;
+using ContactManager.Services.Abstractions;
+using ContactManager.Services.Implementations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +24,20 @@ namespace ContactManager
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+
+            services.AddDbContext<ContactManagerContext>(options => 
+                options.UseSqlServer(Configuration.GetConnectionString("myconn")));
+
+            services.AddScoped<IContactManagerService, ContactManagerService>();
+
+            var mapperConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+            });
+
+            IMapper mapper = mapperConfig.CreateMapper();
+
+            services.AddSingleton(mapper);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
